@@ -16,12 +16,10 @@ struct Item: Identifiable {
 
 struct ContentView: View {
     let items: [Item] = [
-        Item(symbol: "📅", title: "Today", number: 10),
-        Item(symbol: "", title: "Scheduled", number: 25),
-        Item(symbol: "", title: "Flagged", number: 8),
-        Item(symbol: "", title: "Assigned", number: 16),
-        Item(symbol: "", title: "Completed", number: 20),
-        Item(symbol: "🔒", title: "", number: 12)
+        Item(symbol: "📅", title: "Today", number: 2),
+        Item(symbol: "🗓", title: "Scheduled", number: 3),
+        Item(symbol: "🚩", title: "Flagged", number: 8),
+        Item(symbol: "📌", title: "Assigned", number: 16)
     ]
 
     var body: some View {
@@ -33,7 +31,9 @@ struct ContentView: View {
                             let index = rowIndex * 2 + colIndex
                             NavigationLink(destination: DetailView(item: items[index])) {
                                 GridItemView(item: items[index])
+                                    .accessibilityLabel("\(items[index].title) \(items[index].number) items")
                             }
+                            .accessibility(identifier: "item_\(index)")
                         }
                     }
                 }
@@ -42,8 +42,10 @@ struct ContentView: View {
             .navigationBarItems(trailing: NavigationLink(destination: MyReminderView()) {
                 Text("My Reminder")
                     .foregroundColor(.blue)
+                    .accessibilityLabel("My Reminder")
             })
         }
+        .navigationViewStyle(StackNavigationViewStyle()) // To fix accessibility issues with navigation links
     }
 }
 
@@ -66,9 +68,11 @@ struct GridItemView: View {
                 .padding(.bottom, 10)
         }
         .frame(maxWidth: 150, maxHeight: 150)
-        .background(Color.gray.opacity(0.2))
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(10)
         .padding(10)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(item.title) \(item.number)")
     }
 }
 
@@ -78,13 +82,15 @@ struct DetailView: View {
     var body: some View {
         GridItemView(item: item)
             .navigationTitle(item.title)
+            .accessibilityLabel("\(item.title) \(item.number)")
     }
 }
 
-struct contentView: View {
+struct myReminderView: View {
     var body: some View {
         Text("My Reminder")
             .navigationTitle("My Reminder")
+            .accessibilityLabel("My Reminder")
     }
 }
 
