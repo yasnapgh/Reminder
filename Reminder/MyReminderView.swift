@@ -1,46 +1,50 @@
-//
-//  MyReminderView.swift
-//  Reminder
-//
-//  Created by Yasna Pourgholamhosseini on 22/11/23.
-//
-
 import SwiftUI
 
+struct ReminderItem: Identifiable , Codable, Equatable {
+    let id = UUID()
+    var text: String
+    var date: Date
+}
+
 struct MyReminderView: View {
-    @State var text: Array<String> = []
+    @State var reminders: [ReminderItem] = []
     @State var showsheet = false
     @State var textitemtemp = ""
 
     var body: some View {
         NavigationView {
+        
             Group {
-                if text.isEmpty {
+                if reminders.isEmpty {
                     Text("No reminder")
                         .accessibilityLabel(Text("No reminders"))
                 } else {
                     List {
-                        ForEach(text.indices, id: \.self) { i in
-                            ReminderRowView(text: $text[i], onDelete: {
-                                deleteItem(at: i)
+                        ForEach(reminders) { reminder in
+                            ReminderRowView(reminder: reminder, onDelete: {
+                                deleteItem(reminder)
                             })
-                            .accessibilityLabel(Text("\(text[i])"))
+                            .accessibilityLabel(Text("\(reminder.text)"))
                             .accessibilityHint(Text("Double-tap to delete"))
                         }
                     }
                 }
             }
+           
             .navigationTitle("My Reminders")
             .toolbar {
+               
                 Button(action: {
                     showsheet.toggle()
                     textitemtemp = ""
                 }, label: {
-                    Image(systemName: "plus")
+                    Image(systemName: "plus.circle.fill")
                         .accessibilityLabel(Text("Add a new reminder"))
                 })
+            
+               
             }
-            .onChange(of: text) { _ in
+            .onChange(of: reminders) { _ in
                 save()
                 load()
             }
@@ -56,41 +60,49 @@ struct MyReminderView: View {
         }
     }
 
-    func deleteItem(at index: Int) {
-        if text.indices.contains(index) {
-            text.remove(at: index)
+    func deleteItem(_ reminder: ReminderItem) {
+        if let index = reminders.firstIndex(where: { $0.id == reminder.id }) {
+            reminders.remove(at: index)
             save()
         }
     }
 
     func addReminder() {
-        text.append(textitemtemp)
+        let newReminder = ReminderItem(text: textitemtemp, date: Date())
+        reminders.append(newReminder)
         showsheet.toggle()
         save()
     }
 
     func save() {
-        let temp = text.joined(separator: "/[split]/")
-        UserDefaults.standard.setValue(temp, forKey: "text")
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(reminders) {
+            UserDefaults.standard.set(encoded, forKey: "reminders")
+        }
     }
 
     func load() {
-        let temp = UserDefaults.standard.string(forKey: "text") ?? ""
-        let temparray = temp.components(separatedBy: "/[split]/")
-        text = temparray
+        if let data = UserDefaults.standard.data(forKey: "reminders") {
+            let decoder = JSONDecoder()
+            if let decoded = try? decoder.decode([ReminderItem].self, from: data) {
+                reminders = decoded
+            }
+        }
     }
 }
 
-
-
-
 struct ReminderRowView: View {
-    @Binding var text: String
+    var reminder: ReminderItem
     var onDelete: () -> Void
 
     var body: some View {
         HStack {
-            Text(text)
+            VStack(alignment: .leading) {
+                Text(reminder.text)
+                Text("\(formattedDate(reminder.date))")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
             Spacer()
             Button(action: onDelete) {
                 Image(systemName: "trash.fill")
@@ -102,6 +114,13 @@ struct ReminderRowView: View {
                 Label("Delete", systemImage: "trash.fill")
             }
         }
+    }
+
+    func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 
@@ -115,7 +134,7 @@ struct NewReminderView: View {
             List {
                 TextField("New Reminder", text: $textitemtemp)
             }
-            .navigationTitle("New Reminder")
+            .navigationTitle ("New Reminder")
             .toolbar {
                 Button("Add") {
                     addReminder()
@@ -130,4 +149,3 @@ struct MyReminderView_Preview: PreviewProvider {
         MyReminderView()
     }
 }
-

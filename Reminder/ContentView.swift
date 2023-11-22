@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Reminder
-//
-//  Created by Yasna Pourgholamhosseini on 22/11/23.
-// ALIII
-
 import SwiftUI
 
 struct Item: Identifiable {
@@ -12,30 +5,33 @@ struct Item: Identifiable {
     let symbol: String
     let title: String
     let number: Int
+    let category: String // New property to represent category
+}
+
+enum ReminderCategory: String {
+    case today = "Today"
+    case scheduled = "Scheduled"
+    case flagged = "Flagged"
+    case assigned = "Assigned"
 }
 
 struct ContentView: View {
     let items: [Item] = [
-        Item(symbol: "📅", title: "Today", number: 2),
-        Item(symbol: "🗓", title: "Scheduled", number: 3),
-        Item(symbol: "🚩", title: "Flagged", number: 8),
-        Item(symbol: "📌", title: "Assigned", number: 16)
+        Item(symbol: "📅", title: "Today", number: 2, category: ReminderCategory.today.rawValue),
+        Item(symbol: "🗓", title: "Scheduled", number: 3, category: ReminderCategory.scheduled.rawValue),
+        Item(symbol: "🚩", title: "Flagged", number: 8, category: ReminderCategory.flagged.rawValue),
+        Item(symbol: "📌", title: "Assigned", number: 16, category: ReminderCategory.assigned.rawValue)
     ]
 
     var body: some View {
         NavigationView {
             List {
-                ForEach(0..<items.count / 2, id: \.self) { rowIndex in
-                    HStack {
-                        ForEach(0..<2, id: \.self) { colIndex in
-                            let index = rowIndex * 2 + colIndex
-                            NavigationLink(destination: DetailView(item: items[index])) {
-                                GridItemView(item: items[index])
-                                    .accessibilityLabel("\(items[index].title) \(items[index].number) items")
-                            }
-                            .accessibility(identifier: "item_\(index)")
-                        }
+                ForEach(items) { item in
+                    NavigationLink(destination: DetailView(item: item)) {
+                        GridItemView(item: item)
+                            .accessibilityLabel("\(item.title) \(item.number) items")
                     }
+                    .accessibility(identifier: "item_\(item.id)")
                 }
             }
             .navigationTitle("Reminder")
@@ -45,9 +41,11 @@ struct ContentView: View {
                     .accessibilityLabel("My Reminder")
             })
         }
-        .navigationViewStyle(StackNavigationViewStyle()) // To fix accessibility issues with navigation links
+        .navigationViewStyle(StackNavigationViewStyle())
+        
     }
 }
+
 
 struct GridItemView: View {
     let item: Item
@@ -67,7 +65,7 @@ struct GridItemView: View {
                 .foregroundColor(.black)
                 .padding(.bottom, 10)
         }
-        .frame(maxWidth: 150, maxHeight: 150)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.gray.opacity(0.1))
         .cornerRadius(10)
         .padding(10)
