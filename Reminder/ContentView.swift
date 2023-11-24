@@ -19,8 +19,8 @@ struct ContentView: View {
     let items: [Item] = [
         Item(symbol: "📅", title: "Today", number: 2, category: ReminderCategory.today.rawValue),
         Item(symbol: "🗓", title: "Scheduled", number: 3, category: ReminderCategory.scheduled.rawValue),
-        Item(symbol: "🚩", title: "Flagged", number: 8, category: ReminderCategory.flagged.rawValue),
-        Item(symbol: "📌", title: "Assigned", number: 16, category: ReminderCategory.assigned.rawValue)
+        Item(symbol: "🚩", title: "Flagged", number: 1, category: ReminderCategory.flagged.rawValue),
+        Item(symbol: "📌", title: "Assigned", number: 0, category: ReminderCategory.assigned.rawValue)
     ]
 
     var body: some View {
@@ -34,6 +34,7 @@ struct ContentView: View {
                     .accessibility(identifier: "item_\(item.id)")
                 }
             }
+            .listStyle(.plain)
             .navigationTitle("Reminder")
             .navigationBarItems(trailing: NavigationLink(destination: MyReminderView()) {
                 Text("My Reminder")
